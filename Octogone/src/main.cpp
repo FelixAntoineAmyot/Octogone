@@ -2,6 +2,7 @@
 #include <librobus.h>
 #include <TimedAction.h>
 #include <QTRSensors.h>
+#include <math.h>
 
 #define NUM_SENSORS             8  // number of sensors used
 #define NUM_SAMPLES_PER_SENSOR  4  // average 4 analog samples per sensor reading
@@ -13,57 +14,68 @@ QTRSensorsAnalog qtra((unsigned char[]) {0, 1, 2, 3, 4, 5,6,7},
 unsigned int sensorValues[NUM_SENSORS];
 
 
-bool isLine(unsigned int  sensorValues[NUM_SENSORS])
+void sifflet()
 {
-  int somme = 0;
-  for(int i = 0; i < NUM_SENSORS; i++)
+  int khz5 = analogRead(A0);
+  
+  Serial.println(khz5);
+  if (khz5 > 400)
   {
-    somme += sensorValues[i];
+    MOTOR_SetSpeed(0,0);
+    MOTOR_SetSpeed(1,0);
+    Serial.println("STOP");
+    delay(10000);
   }
-  return constrain(somme,0,1);
 }
 
-int angleLigne()
+TimedAction threadSon = TimedAction(1300,sifflet);
+
+int trouveLigne()
 {
-  // read raw sensor values
+  int moyenne = 0;
+  int nbSensorsActif = 0;
+  //read raw sensor values
   qtra.read(sensorValues);
 
   // print the sensor values as numbers from 0 to 1023, where 0 means maximum reflectance and
   // 1023 means minimum reflectance
   for (unsigned char i = 0; i < NUM_SENSORS; i++)
   {
-    Serial.print(sensorValues[i]);
-    Serial.print('\t'); // tab to format the raw data into columns in the Serial monitor
-  }
-  for (unsigned char i = 0; i < NUM_SENSORS; i++)
-  {
-    if(sensorValues[i] < 100)
+    threadSon.check();
+    
+    
+    if(sensorValues[i] > 800)
+    {
+      sensorValues[i] = 1000 * (i+1);
+      nbSensorsActif += 1;
+      moyenne += sensorValues[i];
+    }
+    else
     {
       sensorValues[i] = 0;
     }
-    else sensorValues[i] = 1;
-
     Serial.print(sensorValues[i]);
     Serial.print('\t'); // tab to format the raw data into columns in the Serial monitor
   }
-
-  if(!isLine(sensorValues)) return 360;
-
-
   Serial.println();
-
-  delay(100);
+  if (nbSensorsActif != 0)
+  {
+    return moyenne / nbSensorsActif;
+  }
+  else return 0;
 }
 
 void setup()
 {
-  delay(500);
-  Serial.begin(9600); // set the data rate in bits per second for serial data transmission
-  delay(1000);
+  Serial.begin(9600);
 }
 
 
 void loop()
 {
-  angleLigne();
+  threadSon.check();
+
+  
+
+  delay(250);
 }
