@@ -18,14 +18,14 @@ void sifflet()
 {
   int khz5 = analogRead(A0);
   
-  Serial.println(khz5);
+  /*Serial.println(khz5);
   if (khz5 > 400)
   {
     MOTOR_SetSpeed(0,0);
     MOTOR_SetSpeed(1,0);
     Serial.println("STOP");
     delay(10000);
-  }
+  }*/
 }
 
 TimedAction threadSon = TimedAction(1300,sifflet);
@@ -44,9 +44,9 @@ int trouveLigne()
     threadSon.check();
     
     
-    if(sensorValues[i] > 800)
+    if(sensorValues[i] > 300)
     {
-      sensorValues[i] = 1000 * (i+1);
+      sensorValues[i] = 100 * (i+1);
       nbSensorsActif += 1;
       moyenne += sensorValues[i];
     }
@@ -60,7 +60,7 @@ int trouveLigne()
   Serial.println();
   if (nbSensorsActif != 0)
   {
-    return moyenne / nbSensorsActif;
+    return moyenne / nbSensorsActif - 450;
   }
   else return 0;
 }
@@ -74,7 +74,7 @@ void setup()
 void loop()
 {
   threadSon.check();
-
+  Serial.println(trouveLigne());
   
 
   delay(250);
