@@ -16,16 +16,16 @@ unsigned int sensorValues[NUM_SENSORS];
 
 void sifflet()
 {
-  int khz5 = analogRead(A0);
+  int khz5 = analogRead(A8);
   
-  /*Serial.println(khz5);
+  Serial.println(khz5);
   if (khz5 > 400)
   {
     MOTOR_SetSpeed(0,0);
     MOTOR_SetSpeed(1,0);
     Serial.println("STOP");
     delay(10000);
-  }*/
+  }
 }
 
 TimedAction threadSon = TimedAction(1300,sifflet);
@@ -65,6 +65,12 @@ int trouveLigne()
   else return 0;
 }
 
+void followLine(float ligne,float vitesse = 0.5)
+{
+  float correction = ligne/10000;
+  MOTOR_SetSpeed(0, vitesse);
+  MOTOR_SetSpeed(1,vitesse + correction);
+}
 void setup()
 {
   Serial.begin(9600);
@@ -76,6 +82,5 @@ void loop()
   threadSon.check();
   Serial.println(trouveLigne());
   
-
   delay(250);
 }
