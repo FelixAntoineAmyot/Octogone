@@ -18,7 +18,7 @@ void sifflet()
 {
   int khz5 = analogRead(A8);
   Serial.println(khz5);
-  if (khz5 > 580)
+  if (khz5 > 590)
   {
     MOTOR_SetSpeed(0,0);
     MOTOR_SetSpeed(1,0);
