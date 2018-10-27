@@ -1,0 +1,109 @@
+/*
+Projet: Le nom du script
+Equipe: Votre numero d'equipe
+Auteurs: Les membres auteurs du script
+Description: Breve description du script
+Date: Derniere date de modification
+*/
+
+/* ****************************************************************************
+Inclure les librairies de functions que vous voulez utiliser
+**************************************************************************** */
+
+#include <LibRobus.h> // Essentielle pour utiliser RobUS
+#include <Arduino.h>
+#include <ADJDS311.h>
+
+
+/* ****************************************************************************
+Variables globales et defines
+**************************************************************************** */
+// -> defines...
+// L'ensemble des fonctions y ont acces
+
+#define ledPin = 26;
+ADJDS311 color(26);
+
+
+
+/* ****************************************************************************
+Vos propres fonctions sont creees ici
+**************************************************************************** */
+
+
+  // code
+
+
+
+/* ****************************************************************************
+Fonctions d'initialisation (setup)
+**************************************************************************** */
+// -> Se fait appeler au debut du programme
+// -> Se fait appeler seulement un fois
+// -> Generalement on y initilise les varibbles globales
+
+void setup(){
+  Serial.begin(9600);
+    color.init();
+    color.ledOn();
+     color.calibrate();
+  //ENCODER_Read(0 gauche ou 1 droit)   ENCODER_ReadReset(0 gauche 1 droit)    ENCODER_Reset(0 gauche ou 1 droit)
+}
+int couleur(){
+   char COULEUR1[1];
+   char j;
+   char r;
+   char n;
+   char b;
+   char v;
+  if (color.readRed()>950){
+    if(color.readGreen()>950){
+      if(color.readBlue()>600){
+        COULEUR1[1]=j;
+      }
+    }
+  }
+  if (color.readRed()>950){
+    if(color.readGreen()>950){
+      if(color.readBlue()>600){
+        COULEUR1[1]=r;
+      }
+    }
+  }
+  if (color.readRed()>950){
+    if(color.readGreen()>950){
+      if(color.readBlue()<600){
+        COULEUR1[1]=v;
+      }
+    }
+  }
+  if (color.readRed()>950){
+    if(color.readGreen()>950){
+      if(color.readBlue()<600){
+        COULEUR1[1]=b;
+      }
+    }
+  }
+  else{
+        COULEUR1[1]=n;
+  }
+  if(COULEUR1[1]=='r'){
+    return 1;
+  }
+  else{
+    return 0;
+  }
+}
+
+/* ****************************************************************************
+Fonctions de boucle infini (loop())
+**************************************************************************** */
+// -> Se fait appeler perpetuellement suite au "setup"
+
+void loop() {
+  // SOFT_TIMER_Update(); // A decommenter pour utiliser des compteurs logiciels
+// Delais pour décharger le CPU
+ couleur();
+
+  delay(500);
+}

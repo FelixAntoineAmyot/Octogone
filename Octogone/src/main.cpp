@@ -17,7 +17,7 @@ unsigned int sensorValues[NUM_SENSORS];
 void sifflet()
 {
   int khz5 = analogRead(A8);
-  
+  /*
   Serial.println(khz5);
   if (khz5 > 390)
   {
@@ -25,7 +25,7 @@ void sifflet()
     MOTOR_SetSpeed(1,0);
     Serial.println("STOP");
     delay(10000);
-  }
+  }*/
 }
 
 TimedAction threadSon = TimedAction(1300,sifflet);
