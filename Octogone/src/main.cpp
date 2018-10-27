@@ -19,7 +19,7 @@ void sifflet()
   int khz5 = analogRead(A8);
   
   Serial.println(khz5);
-  if (khz5 > 400)
+  if (khz5 > 390)
   {
     MOTOR_SetSpeed(0,0);
     MOTOR_SetSpeed(1,0);
@@ -79,6 +79,7 @@ void setup()
 
 void loop()
 {
+  
   threadSon.check();
   Serial.println(trouveLigne());
   
