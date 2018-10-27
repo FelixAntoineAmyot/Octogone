@@ -12,23 +12,22 @@
 QTRSensorsAnalog qtra((unsigned char[]) {0, 1, 2, 3, 4, 5,6,7},
   NUM_SENSORS, NUM_SAMPLES_PER_SENSOR, EMITTER_PIN);
 unsigned int sensorValues[NUM_SENSORS];
-
+int prevLigne[5];
 
 void sifflet()
 {
   int khz5 = analogRead(A8);
-  /*
   Serial.println(khz5);
-  if (khz5 > 500)
+  if (khz5 > 580)
   {
     MOTOR_SetSpeed(0,0);
     MOTOR_SetSpeed(1,0);
     Serial.println("STOP");
     delay(10000);
-  }*/
+  }
 }
 
-TimedAction threadSon = TimedAction(1300,sifflet);
+TimedAction threadSon = TimedAction(1000,sifflet);
 
 int trouveLigne()
 {
@@ -54,25 +53,51 @@ int trouveLigne()
     {
       sensorValues[i] = 0;
     }
-    Serial.print(sensorValues[i]);
-    Serial.print('\t'); // tab to format the raw data into columns in the Serial monitor
+    ///Serial.print(sensorValues[i]);
+    //Serial.print('\t'); // tab to format the raw data into columns in the Serial monitor
   }
-  Serial.println();
+  //Serial.println();
   if (nbSensorsActif != 0)
   {
-    return moyenne / nbSensorsActif - 450;
+    return moyenne / nbSensorsActif;
   }
   else return 0;
 }
 
 void followLine(float ligne,float vitesse = 0.5)
 {
-  float correction = ligne/10000;
-  MOTOR_SetSpeed(0, vitesse);
-  MOTOR_SetSpeed(1,vitesse + correction);
+  float sum = 0;
+  float nbMem = 0;
+  float moyenne;
+  for(int i = 0; i < 5 ;i++)
+  {
+    threadSon.check();
+    prevLigne[i+1] = prevLigne[i];
+  }
+  prevLigne[0] = ligne;
+  for(int i = 0; i < 5 ;i++)
+  {
+    threadSon.check();
+    if (prevLigne[i] != 0)
+    {
+      sum += prevLigne[i];
+      nbMem += 1;
+    }
+  }
+  if (nbMem > 0)
+  {
+    moyenne = sum/nbMem;
+  }
+  float erreur = prevLigne[0] - moyenne;
+  float correction = erreur / 500;
+  MOTOR_SetSpeed(0,vitesse + correction);
+  MOTOR_SetSpeed(1,vitesse - correction);
+
 }
 void setup()
 {
+  BoardInit();
+ 
   Serial.begin(9600);
 }
 
@@ -80,7 +105,8 @@ void setup()
 void loop()
 {
   threadSon.check();
-  Serial.println(trouveLigne());
-  
-  delay(250);
+  float ligne = trouveLigne();
+  //Serial.println(ligne);
+  followLine(ligne,0.4);
+  delay(50);
 }
