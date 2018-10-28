@@ -109,10 +109,12 @@ void tourner(float angle,float vitesse,float rayon)
 {
     ENCODER_Reset(0);
     ENCODER_Reset(1);
-    float arcInt = PI * rayon / 180 * angle;
-    float arcExt = PI * (rayon + 0.192) / 180 * angle;//distance entre roues (m)
-    int vExt= vitesse;
-    int vInt= vitesse*arcInt/arcExt;
+    float arcInt = PI * rayon / 180.0 * angle;
+    float arcExt = PI * (rayon + 0.192) / 180.0 * angle;//distance entre roues (m)
+    float vExt= vitesse;
+    float vInt= vitesse*arcInt/arcExt;
+    Serial.println(vExt);
+    Serial.println(vInt);
     int inter = 1, ext=0;
     if (angle < 0)
     {
@@ -121,26 +123,24 @@ void tourner(float angle,float vitesse,float rayon)
     }
     
 
-    MOTOR_SetSpeed(vExt, ext);
-    MOTOR_SetSpeed(vInt, inter);
+    MOTOR_SetSpeed(ext, vExt);
+    MOTOR_SetSpeed(inter,vInt );
     float distInt = abs(3200 *arcInt/0.25);// Encodeur tour//Diametre roue en m
     float distExt = abs(3200 *arcExt/0.25);// Encodeur tour//Diametre roue en m
     float parcouruExt;
     float parcouruInt;
-    int nb_OverFlow =0;
-     while (distExt > parcouruExt+30000*nb_OverFlow)
+
+     while (distExt > parcouruExt)
     { 
        delay(10);
         threadSon.check();
         parcouruExt = ENCODER_Read(ext);
         parcouruInt = ENCODER_Read(inter);
-        
-        if(parcouruExt>29990)
+        if( distInt <= parcouruInt)
         {
-          nb_OverFlow = nb_OverFlow + 1;
-          ENCODER_Reset(ext);
-    
+         parcouruExt=distExt+1;
         }
+    
     }
    } 
 
@@ -169,8 +169,8 @@ void loop()
 {
   unsigned long start_time = millis();
   unsigned long compteur = 0;
-
-  while(compteur <= 120000)
+ 
+  while(compteur <= 12000)
   {
     compteur = millis() - start_time;
     straight_line_func(.5, .5);
@@ -180,8 +180,11 @@ void loop()
     straight_line_func(-.5, -.5);
     delay(1000);
   }
-  delay(10000);
+  tourner(90, 0.4, 1.04);
+  tourner(90, 0.4, 1.04);
+  tourner(90, 0.4, 1.04);
+  tourner(90, 0.4, 1.04);
   threadSon.check();
-  tourner(360, 0.4, 1.24 );
+
   delay(50);  
 }
