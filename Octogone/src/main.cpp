@@ -11,9 +11,9 @@
 
 void sifflet()
 {
-  int khz5 = analogRead(A8);
+  int khz5 = analogRead(A1);
   Serial.println(khz5);
-  if (khz5 > 590)
+  if (khz5 > 390)
   {
     MOTOR_SetSpeed(0,0);
     MOTOR_SetSpeed(1,0);
@@ -60,14 +60,15 @@ void straight_line_func(float v1, float distance)
       pulse_recu = ENCODER_Read(0); //désignation variable pulse recu à la lecture de l'encodeur gauche
       pulse_att = ENCODER_Read(1); //désignation variable pulse att à la lecture de l'encodeur droit
       distance_parcourue = pi*diameter*pulse_recu/3200; 
-      Serial.println(pulse_recu);
+      //Serial.println(pulse_recu);
       float erreur_totale = (nb_tour*pulse_att)-pulse_recu;
       float erreur_vitesse = (pulse_recu-pulse_att)/t;
 
       float valeur_ajoute = (kmoins*erreur_totale)+(erreur_vitesse*kplus);
       v2 = (v1 + valeur_ajoute);
+      
 
-      Serial.println(valeur_ajoute);
+      //Serial.println(valeur_ajoute);
     }
   }
   else
@@ -83,14 +84,14 @@ void straight_line_func(float v1, float distance)
       pulse_recu = ENCODER_Read(0); //désignation variable pulse recu à la lecture de l'encodeur gauche
       pulse_att = ENCODER_Read(1); //désignation variable pulse att à la lecture de l'encodeur droit
       distance_parcourue = pi*diameter*pulse_recu/3200; 
-      Serial.println(pulse_recu);
+     // Serial.println(pulse_recu);
       float erreur_totale = (nb_tour*pulse_att)-pulse_recu;
       float erreur_vitesse = (pulse_recu-pulse_att)/t;
 
       float valeur_ajoute = (kmoins*erreur_totale)+(erreur_vitesse*kplus);
       v2 = (v1 + valeur_ajoute);
 
-      Serial.println(valeur_ajoute);
+      //Serial.println(valeur_ajoute);
     }
   }
   for(int t=40; t>=0; t--)
@@ -113,8 +114,8 @@ void tourner(float angle,float vitesse,float rayon)
     float arcExt = PI * (rayon + 0.192) / 180.0 * angle;//distance entre roues (m)
     float vExt= vitesse;
     float vInt= vitesse*arcInt/arcExt;
-    Serial.println(vExt);
-    Serial.println(vInt);
+    //Serial.println(vExt);
+   // Serial.println(vInt);
     int inter = 1, ext=0;
     if (angle < 0)
     {
@@ -173,17 +174,18 @@ void loop()
   while(compteur <= 12000)
   {
     compteur = millis() - start_time;
-    straight_line_func(.5, .5);
+    straight_line_func(.5, .26);
     // SOFT_TIMER_Update(); // A decommenter pour utiliser des compteurs logiciels
     delay(1000);// Delais pour décharger le CPU
     threadSon.check();
-    straight_line_func(-.5, -.5);
+    straight_line_func(-.5, -.26);
     delay(1000);
   }
-  tourner(90, 0.4, 1.04);
-  tourner(90, 0.4, 1.04);
-  tourner(90, 0.4, 1.04);
-  tourner(90, 0.4, 1.04);
+  straight_line_func(.5, .05);
+  tourner(-90, 0.4, 0.87);
+  tourner(-90, 0.4, 0.87);
+  tourner(-90, 0.4, 0.87);
+  tourner(-80, 0.4, 0.87);
   threadSon.check();
 
   delay(50);  
