@@ -8,15 +8,29 @@
 #define NUM_SAMPLES_PER_SENSOR  4  // average 4 analog samples per sensor reading
 #define EMITTER_PIN             2  // emitter is controlled by digital pin 2
 
+#define SCALE 28
+
+#define LIMIT_LOW 10.0
+#define LIMIT_HIGH 60.0
+#define TOLERANCE 0.05
+#define OFFSET 0.007
 // sensors 0 through 5 are connected to analog inputs 0 through 5, respectively
-QTRSensorsAnalog qtra((unsigned char[]) {0, 1, 2, 3, 4, 5,6,7},
+QTRSensorsAnalog qtra((unsigned char[]) {2, 3, 4, 5, 6, 7,8,9},
   NUM_SENSORS, NUM_SAMPLES_PER_SENSOR, EMITTER_PIN);
 unsigned int sensorValues[NUM_SENSORS];
 int prevLigne[5];
+int prevMur = 0;
 
+float IR_distance(int id)
+{
+  float volts = ROBUS_ReadIR(id)*0.0048828125;  // value from sensor * (5/1024)
+  float distance = SCALE*pow(volts, -1); // worked out from datasheet graph
+  //  Serial.println(distance);   // print the distance
+  return distance;
+}
 void sifflet()
 {
-  int khz5 = analogRead(A8);
+  int khz5 = analogRead(A10);
   Serial.println(khz5);
   if (khz5 > 390)
   {
@@ -26,22 +40,40 @@ void sifflet()
     delay(10000);
   }
 }
+void mur()
+{
+  float distHaut = IR_distance(1);
+  if(distHaut < 30)
+  {
+    if(prevMur > 5)
+    {
+      MOTOR_SetSpeed(0,-.5);
+      MOTOR_SetSpeed(1,-.5);
+      delay(500);
+    }
+    MOTOR_SetSpeed(0,.5);
+    MOTOR_SetSpeed(1,-.5);
+    delay(500);
+    MOTOR_SetSpeed(0,0);
+    MOTOR_SetSpeed(1,0);
+    prevMur +=1;
+  }
+  else prevMur = 0;
+}
 
-TimedAction threadSon = TimedAction(1000,sifflet);
+TimedAction threadSon = TimedAction(200,sifflet);
+TimedAction threadCollision = TimedAction(100,mur);
+
 
 int trouveLigne()
 {
   int moyenne = 0;
   int nbSensorsActif = 0;
-  //read raw sensor values
   qtra.read(sensorValues);
-
-  // print the sensor values as numbers from 0 to 1023, where 0 means maximum reflectance and
-  // 1023 means minimum reflectance
   for (unsigned char i = 0; i < NUM_SENSORS; i++)
   {
     threadSon.check();
-    
+    threadCollision.check();
     
     if(sensorValues[i] > 300)
     {
@@ -59,7 +91,11 @@ int trouveLigne()
   //Serial.println();
   if (nbSensorsActif != 0)
   {
-    return moyenne / nbSensorsActif;
+    if(nbSensorsActif == 8)
+    {
+      return 1;
+    }
+    else return moyenne / nbSensorsActif;
   }
   else return 0;
 }
@@ -72,12 +108,14 @@ void followLine(float ligne,float vitesse = 0.5)
   for(int i = 0; i < 5 ;i++)
   {
     threadSon.check();
+    threadCollision.check();
     prevLigne[i+1] = prevLigne[i];
   }
   prevLigne[0] = ligne;
   for(int i = 0; i < 5 ;i++)
   {
     threadSon.check();
+    threadCollision.check();
     if (prevLigne[i] != 0)
     {
       sum += prevLigne[i];
@@ -94,20 +132,52 @@ void followLine(float ligne,float vitesse = 0.5)
   MOTOR_SetSpeed(1,vitesse - correction);
 
 }
+void chercheBalle()
+{
+  float distBas = IR_distance(0);
+  float distHaut = IR_distance(1);
+  float diff = distHaut - distBas;
+  if (diff > 30)
+  {
+    if(distBas < 15)
+    {
+      
+      SERVO_SetAngle(0,130);
+      delay(100);
+      SERVO_SetAngle(0,90);
+      delay(100);
+
+    }
+    MOTOR_SetSpeed(0,.5);
+    MOTOR_SetSpeed(1,.5);
+  }
+  else
+  {
+    float ligne = trouveLigne();
+    followLine(ligne,.4);
+  }
+}
 void setup()
 {
   BoardInit();
  
   Serial.begin(9600);
+  SERVO_Enable(0);
+  while(!ROBUS_IsBumper(3))
+  {
+    delay(10);
+  }
+  delay(5000);
 }
 
 
 void loop()
 {
-  
   threadSon.check();
-  float ligne = trouveLigne();
-  //Serial.println(ligne);
-  followLine(ligne,0.4);
+  threadCollision.check();
+
+  chercheBalle();
+  
+
   delay(50);
 }
