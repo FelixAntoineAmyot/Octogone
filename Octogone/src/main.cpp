@@ -22,7 +22,7 @@ void sifflet()
   }
 }
 
-TimedAction threadSon = TimedAction(1000,sifflet);
+TimedAction threadSon = TimedAction(100,sifflet);
 
 
 void straight_line_func(float v1, float distance)
@@ -172,15 +172,16 @@ void setup()
   BoardInit();
   //float v1;
   //float distance;
-  Serial.println("Start");
+
   //straight_line_func(v1, distance);
   
-  while (digitalRead(37)==0) 
+  while (!ROBUS_IsBumper(0)) 
   {
     delay(10);
     threadSon.check();
-    Serial.println(digitalRead(37));
+
   }
+    Serial.println("Start");
   delay(7000);
   straight_line_func(-0.4, -0.1);
  tourner(45, -0.4,0.2);
@@ -202,6 +203,7 @@ void loop()
     threadSon.check();
     straight_line_func(-.3, -.3);
     delay(100);
+    
      straight_line_func(.3, .1);
      unsigned long start_time = millis();
   while(compteur <= Temps_but)
