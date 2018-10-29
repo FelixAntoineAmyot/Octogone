@@ -11,9 +11,10 @@
 
 void sifflet()
 {
+  
   int khz5 = analogRead(A1);
   Serial.println(khz5);
-  if (khz5 > 390)
+  if (khz5 > 600    )
   {
     MOTOR_SetSpeed(0,0);
     MOTOR_SetSpeed(1,0);
@@ -193,7 +194,7 @@ void setup()
 
 void loop()
 {
-  int Temps_but= 3000;
+  int Temps_but= 2000;
  
   unsigned long compteur = 0;
 
