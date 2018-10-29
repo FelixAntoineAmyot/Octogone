@@ -130,18 +130,37 @@ void tourner(float angle,float vitesse,float rayon)
     float distExt = abs(3200 *arcExt/0.25);// Encodeur tour//Diametre roue en m
     float parcouruExt;
     float parcouruInt;
-
-     while (distExt > parcouruExt)
-    { 
+    if(vitesse<0)
+    {
+      distInt=distInt*-1;
+      distExt=distExt*-1;
+      while (distExt < parcouruExt)
+      { 
        delay(10);
         threadSon.check();
         parcouruExt = ENCODER_Read(ext);
         parcouruInt = ENCODER_Read(inter);
-        if( distInt <= parcouruInt)
+        if( distInt >= parcouruInt)
         {
-         parcouruExt=distExt+1;
+         parcouruExt=distExt-1;
         }
     
+     }
+    }
+    else
+    {
+      while (distExt > parcouruExt)
+      { 
+        delay(10);
+          threadSon.check();
+          parcouruExt = ENCODER_Read(ext);
+          parcouruInt = ENCODER_Read(inter);
+          if( distInt <= parcouruInt)
+          {
+          parcouruExt=distExt+1;
+          }
+      
+      }
     }
    MOTOR_SetSpeed(0,0);
    MOTOR_SetSpeed(1,0);
@@ -163,6 +182,8 @@ void setup()
     Serial.println(digitalRead(37));
   }
   delay(7000);
+  straight_line_func(-0.4, -0.1);
+ tourner(45, -0.4,0.2);
 
  
   Serial.begin(9600);
@@ -171,29 +192,33 @@ void setup()
 
 void loop()
 {
-  int Temps_but= 12000;
-  unsigned long start_time = millis();
+  int Temps_but= 3000;
+ 
   unsigned long compteur = 0;
-   straight_line_func(-.3, -.3  );
+
+    straight_line_func(.3, .2);
+    // SOFT_TIMER_Update(); // A decommenter pour utiliser des compteurs logiciels
+    delay(100);// Delais pour décharger le CPU
+    threadSon.check();
+    straight_line_func(-.3, -.3);
+    delay(100);
+     straight_line_func(.3, .1);
+     unsigned long start_time = millis();
   while(compteur <= Temps_but)
   {
+   threadSon.check();
     compteur = millis() - start_time;
-    straight_line_func(.3, .05);
-    // SOFT_TIMER_Update(); // A decommenter pour utiliser des compteurs logiciels
-    delay(1000);// Delais pour décharger le CPU
-    threadSon.check();
-    straight_line_func(-.3, -.05);
-    delay(1000);
+   delay(10);
   }
   
-  straight_line_func(.3, 0.1);  
-  tourner(-80, 0.4, 0.1);
+  //straight_line_func(.3, 0.1);  
+  //tourner(-80, 0.4, 0.1);
   
-  tourner(90, 0.4, 0.86);
-  tourner(90, 0.4, 0.86);
-  tourner(90, 0.4, 0.86);
-  tourner(85, 0.4, 0.86  );
+  //tourner(90, 0.4, 0.86);
+  //tourner(90, 0.4, 0.86);
+ // tourner(90, 0.4, 0.86);
+ // tourner(85, 0.4, 0.86  );
   threadSon.check();
 
-  delay(50);  
+   
 }
